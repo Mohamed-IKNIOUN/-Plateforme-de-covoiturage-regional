@@ -6,6 +6,7 @@ Regional carpooling platform (Symfony 7.4 / MySQL 8 / Doctrine ORM).
 This document contains:
 
 1. the use case diagram
+2. the class diagram
 
 ---
 
@@ -88,3 +89,143 @@ flowchart LR
 
 ---
 
+## 2. Class diagram
+
+```mermaid
+classDiagram
+direction TB
+
+namespace Users_and_Vehicles {
+  class User {
+    +int id
+    +string email
+    +string password
+    +string firstName
+    +string lastName
+    +string phone
+    +array roles
+    +datetime createdAt
+  }
+  class Vehicle {
+    +int id
+    +string brand
+    +string model
+    +string color
+    +string plateNumber
+    +int seats
+  }
+}
+
+namespace Geography {
+  class City {
+    +int id
+    +string name
+    +string region
+    +float latitude
+    +float longitude
+  }
+}
+
+namespace Trips {
+  class Trip {
+    +int id
+    +datetime departureAt
+    +int totalSeats
+    +decimal pricePerKm
+    +decimal suggestedPrice
+    +float distanceKm
+    +text routeGeometry
+    +TripStatus status
+    +availableSeats(from, to) int
+    +cancel()
+    +complete()
+  }
+  class TripStop {
+    +int id
+    +int position
+    +datetime arrivalAt
+    +datetime departureAt
+    +float distanceFromStartKm
+  }
+}
+
+namespace Reservations {
+  class Booking {
+    +int id
+    +int seats
+    +decimal totalPrice
+    +BookingStatus status
+    +datetime createdAt
+    +datetime cancelledAt
+    +string cancellationReason
+    +cancelByPassenger()
+    +cancelByDriver()
+  }
+  class Payment {
+    +int id
+    +decimal amount
+    +decimal refundedAmount
+    +PaymentStatus status
+    +string simulatedReference
+  }
+}
+
+namespace Feedback {
+  class Review {
+    +int id
+    +int rating
+    +text comment
+    +ReviewDirection direction
+    +datetime createdAt
+  }
+}
+
+namespace Enumerations {
+  class TripStatus {
+    <<enumeration>>
+    PUBLISHED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+  }
+  class BookingStatus {
+    <<enumeration>>
+    CONFIRMED
+    CANCELLED_BY_PASSENGER
+    CANCELLED_BY_DRIVER
+    COMPLETED
+  }
+  class PaymentStatus {
+    <<enumeration>>
+    PAID
+    REFUNDED
+    PARTIALLY_REFUNDED
+  }
+  class ReviewDirection {
+    <<enumeration>>
+    PASSENGER_TO_DRIVER
+    DRIVER_TO_PASSENGER
+  }
+}
+
+User "1" --> "*" Vehicle : owns
+User "1" --> "*" Trip : drives
+Vehicle "1" --> "*" Trip : used for
+Trip "1" *-- "2..*" TripStop : stops
+TripStop "*" --> "1" City : at
+Trip "1" --> "*" Booking : has
+User "1" --> "*" Booking : books
+Booking "*" --> "1" TripStop : boards at
+Booking "*" --> "1" TripStop : alights at
+Booking "1" *-- "1" Payment : paid by
+Booking "1" --> "0..2" Review : leads to
+User "1" --> "*" Review : writes
+User "1" --> "*" Review : receives
+
+Trip ..> TripStatus
+Booking ..> BookingStatus
+Payment ..> PaymentStatus
+Review ..> ReviewDirection
+```
+
+---
