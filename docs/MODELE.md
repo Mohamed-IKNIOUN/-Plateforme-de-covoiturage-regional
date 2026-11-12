@@ -136,8 +136,12 @@ namespace Trips {
     +float distanceKm
     +text routeGeometry
     +TripStatus status
+    +int version
+    +datetime completedAt
+    +datetime cancelledAt
     +availableSeats(from, to) int
-    +cancel()
+    +segmentLoad(from, to) Map~segment, bookedSeats~
+    +cancel(reason)
     +complete()
   }
   class TripStop {
@@ -146,6 +150,15 @@ namespace Trips {
     +datetime arrivalAt
     +datetime departureAt
     +float distanceFromStartKm
+  }
+  class SegmentOccupancy {
+    +int id
+    +int fromPosition
+    +int toPosition
+    +int bookedSeats
+    +int version
+    +add(seats)
+    +remove(seats)
   }
 }
 
@@ -158,8 +171,11 @@ namespace Reservations {
     +datetime createdAt
     +datetime cancelledAt
     +string cancellationReason
+    +string idempotencyKey
     +cancelByPassenger()
     +cancelByDriver()
+    +complete()
+    +canBeReviewed() bool
   }
   class Payment {
     +int id
@@ -190,6 +206,7 @@ namespace Enumerations {
   }
   class BookingStatus {
     <<enumeration>>
+    PENDING
     CONFIRMED
     CANCELLED_BY_PASSENGER
     CANCELLED_BY_DRIVER
@@ -213,6 +230,7 @@ User "1" --> "*" Trip : drives
 Vehicle "1" --> "*" Trip : used for
 Trip "1" *-- "2..*" TripStop : stops
 TripStop "*" --> "1" City : at
+Trip "1" *-- "*" SegmentOccupancy : tracks
 Trip "1" --> "*" Booking : has
 User "1" --> "*" Booking : books
 Booking "*" --> "1" TripStop : boards at
